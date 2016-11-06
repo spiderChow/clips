@@ -1,4 +1,5 @@
-(deftemplate avh (slot a) (slot v) (slot h))
+(deftemplate elm (slot n) (slot v) (slot h))
+
 
 (deftemplate man
   (slot nationality
@@ -16,144 +17,140 @@
 
 (defrule generation
    =>
-   (assert (value color red) 
-           (value color green) 
-           (value color white)
-           (value color yellow)
-           (value color blue)
-           (value nationality English)
-           (value nationality Swedish)
-           (value nationality Dane) 
-           (value nationality German)
-           (value nationality Norwegian)
-           (value pet dog)
-           (value pet cat)
-           (value pet fish)
-           (value pet horse)
-           (value pet bird)
-           (value drink water)
-           (value drink coffee)
-           (value drink milk)
-           (value drink beer)
-           (value drink tea)
-           (value cigarette BlueMaster)
-           (value cigarette Prince)
-           (value cigarette Blend)
-           (value cigarette Dunhill)
-           (value cigarette PallMall)) 
+   (assert (element color red) 
+           (element color green) 
+           (element color white)
+           (element color yellow)
+           (element color blue)
+           (element nationality English)
+           (element nationality Swedish)
+           (element nationality Dane) 
+           (element nationality German)
+           (element nationality Norwegian)
+           (element pet dog)
+           (element pet cat)
+           (element pet fish)
+           (element pet horse)
+           (element pet bird)
+           (element drink water)
+           (element drink coffee)
+           (element drink milk)
+           (element drink beer)
+           (element drink tea)
+           (element cigarette BlueMaster)
+           (element cigarette Prince)
+           (element cigarette Blend)
+           (element cigarette Dunhill)
+           (element cigarette PallMall)) 
    )
 
 (defrule generate2
-   ?f <- (value ?s ?e)
+    
+   ?f <- (element ?s ?e)
    =>
    (retract ?f)
-   (assert (avh (a ?s) (v ?e) (h 1))
-           (avh (a ?s) (v ?e) (h 2))
-           (avh (a ?s) (v ?e) (h 3))
-           (avh (a ?s) (v ?e) (h 4))
-           (avh (a ?s) (v ?e) (h 5))))
+   (assert (elm (n ?s) (v ?e) (h 1))
+           (elm (n ?s) (v ?e) (h 2))
+           (elm (n ?s) (v ?e) (h 3))
+           (elm (n ?s) (v ?e) (h 4))
+           (elm (n ?s) (v ?e) (h 5))))
+
+(defrule condition2
+    (elm (n nationality) (v English) (h ?n1))   
+    (elm (n color) (v red) (h ?c1&?n1))
+
+    (elm (n nationality) (v Swedish) (h ?n2&~?n1))   
+    (elm (n pet) (v dog) (h ?p1&?n2)) 
+
+    (elm (n nationality) (v Dane) (h ?n3&~?n2&~?n1)) 
+    (elm (n drink) (v tea) (h ?d1&?n3))
+    
+    (elm (n nationality) (v German) (h ?n4&~?n3&~?n2&~?n1)) 
+    (elm (n cigarette) (v Prince) (h ?cig1&?n4))
+
+    (elm (n nationality) (v Norwegian) (h ?n5&1&~?n4&~?n3&~?n2&~?n1))
+    (elm (n color) (v blue) (h ?c5&~?c1))
+     (test(or(eq ?n5 (+ 1 ?c5))
+            (eq ?n5 (- ?c5 1))
+          ))
+
+    (elm (n color) (v green) (h ?c2&~?c1&~?c5))
+    (elm (n color) (v white) (h ?c3&~?c1&~?c5&~?c2))
+    (test(eq ?c2 (- ?c3 1) ))
+
+    (elm (n color) (v green) (h ?c2))
+    (elm (n drink) (v coffee) (h ?d2&?c2&~?d1))
+    
+    (elm (n cigarette) (v PallMall) (h ?cig2&~?cig1))   
+    (elm (n pet) (v bird) (h ?p2&?cig2&~?p1))
+
+    (elm (n color) (v yellow) (h ?c4&~?c1&~?c2&~?c3&~?c5))
+    (elm (n cigarette) (v Dunhill) (h ?cig3&?c4&~?cig1&~?cig2))
+    
+    (elm (n drink) (v milk) (h ?d3&3&~?d1&~?d2))
+    
+    (elm (n cigarette) (v Blend) (h ?cig4&~?cig1&~?cig2))
+    (elm (n pet) (v cat) (h ?p3&~?p1&~?p2))
+    (elm (n drink) (v water) (h ?d5&~?d1&~?d2&~?d3))
+    (test(or(eq ?cig4 (+ 1 ?p3))
+            (eq ?cig4 (- ?p3 1))
+          ))
+    (test(or(eq ?cig4 (+ 1 ?d5))
+            (eq ?cig4 (- ?d5 1))
+          ))
+ 
+    (elm (n cigarette) (v Dunhill) (h ?cig3&~?cig1&~?cig2&~?cig4))
+    (elm (n pet) (v horse) (h ?p4&~?p1&~?p2&~?p3))
+    (test(or(eq ?cig3 (+ 1 ?p4))
+            (eq ?cig3 (- ?p4 1))
+          ))
+    
+     (elm (n cigarette) (v BlueMaster) (h ?cig5&~?cig1&~?cig2&~?cig3&~?cig4))
+     (elm (n drink) (v beer) (h ?d4&?cig5&~?d1&~?d2&~?d3&~?d5))
+     
+     (elm (n pet) (v fish) (h ?p5&~?p4&~?p1&~?p2&~?p3))
+
+   =>
+   (assert(result color red ?c1)
+          (result color green ?c2)
+          (result color white ?c3)
+          (result color yellow ?c4)
+          (result color blue ?c5)
+          
+          (result pet dog ?p1)
+          (result pet cat ?p3)
+          (result pet bird ?p2)       
+          (result pet horse ?p4)
+          (result pet fish ?p5)
+
+          (result cigarette BlueMaster ?cig5)
+          (result cigarette Prince ?cig1)
+          (result cigarette Blend ?cig4)
+          (result cigarette Dunhill ?cig3)
+          (result cigarette PallMall ?cig2)
+
+(result drink beer ?d4)
+(result drink water ?d5)
+(result drink milk ?d3)
+(result drink coffee ?d2)
+(result drink tea ?d1)
+
+
+(result nationality English ?n1)
+(result nationality Swedish ?n2)
+(result nationality Dane ?n3)
+(result nationality German ?n4)
+(result nationality Norwegian ?n5)
+))
 
 (defrule generate3
-   ?f1 <- (avh (a drink) (v ?e1) (h ?num))
-   ?f2 <- (avh (a color) (v ?e2) (h ?num))
-   ?f3 <- (avh (a pet) (v ?e3) (h ?num))
-   ?f4 <- (avh (a cigarette) (v ?e4) (h ?num))
-   ?f5 <- (avh (a nationality) (v ?e5) (h ?num))
+   ?f1 <- (result drink  ?e1  ?num)
+   ?f2 <- (result pet  ?e2 ?num)
+   ?f3 <- (result color  ?e3 ?num)
+   ?f4 <- (result cigarette  ?e4 ?num)
+   ?f5 <- (result nationality  ?e5 ?num)
    
    =>
-   (retract ?f1 ?f2 ?f3 ?f4 ?f5)
-   (assert (man(nationality ?e5)(cigarette ?e4)(pet ?e3)(color ?e2)(drink ?e1)(location ?num))))
-
-
-(defrule condition2 
-   ?f1 <- (man(nationality English)(color ?c1&~red))
-   ?f2 <- (man(nationality ?n1&~English)(color red))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule condition3
-   ?f1 <- (man(nationality Swedish)(pet ?c1&~dog))
-   ?f2 <- (man(nationality ?n1&~Swedish)(pet dog))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule condition4
-   ?f1 <- (man(nationality Dane)(drink ?c1&~tea))
-   ?f2 <- (man(nationality ?n1&~Dane)(drink tea))
-  =>
-  (retract ?f1 ?f2))
-
-
-(defrule condition6
-   ?f1 <- (man(color green)(drink ?c1&~coffee))
-   ?f2 <- (man(color &c&~green)(drink coffee))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule condition7
-   ?f1 <- (man(cigarette PallMall)(pet ?c1&~bird))
-   ?f2 <- (man(cigarette &c&~PallMall)(pet bird))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule condition8
-   ?f1 <- (man(cigarette Dunhill)(color ?c1&~yellow))
-   ?f2 <- (man(cigarette &c&~Dunhill)(color yellow))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule condition9
-   ?f1 <- (man(drink milk)(location ?c1&~3))
-   ?f2 <- (man(drink &c&~milk)(location 3))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule condition10
-   ?f1 <- (man(nationality Norwegian)(location ?c1&~1))
-   ?f2 <- (man(nationality ?n1&~Norwegian)(location 1))
-  =>
-  (retract ?f1 ?f2))
-
-
-(defrule condition13
-   ?f1 <- (man(drink beer)(cigarette ?c1&~BlueMaster))
-   ?f2 <- (man(drink &c&~beer)(cigarette BlueMaster))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule condition14
-   ?f1 <- (man(nationality German)(cigarette ?c1&~Prince))
-   ?f2 <- (man(nationality ?n1&~German)(cigarette Prince))
-  =>
-  (retract ?f1 ?f2))
-
-(defrule conditionrest
-   ?f1 <-  (man (nationality ?n1) (drink ?d1) (cigarette ?c1)
-                (pet ?p1)(color green)(location ?l1))
-   ?f2 <-  (man (nationality ?n2&~?n1) (drink ?d2&~?d1) (cigarette ?c2&~?c1)
-                (pet ?p2&~?p1)(color white)(location (+ 1 ?l1)))
-   ?f3 <-  (man (nationality ?n3) (drink ?d3) (cigarette Blend)
-                (pet ?p3&~cat)(color ?color3)(location ?l3))
-   ?f4 <-  (man (nationality ?n4&~?n3) (drink ?d4&~?d3) (cigarette ?c4&~Blend)
-                (pet cat)(color ?color4&~?color3)(location (+ 1 ?l3)|(- ?l3 1)))
-
-   ?f5 <-  (man (nationality ?n5) (drink ?d5) (cigarette Dunhill)
-                (pet ?p5&~horse)(color ?color5)(location ?l5))
-   ?f6 <-  (man (nationality ?n6&~?n5) (drink ?d6&~?d5) (cigarette ?c6&~Dunhill)
-                (pet horse)(color ?color6&~?color5)(location (+ 1 ?l5)|(- ?l5 1)))
-
-   ?f7 <-  (man (nationality Norwegian) (drink ?d7) (cigarette ?c7)
-                (pet ?p7)(color ?color7&~blue)(location ?l7))
-   ?f8 <-  (man (nationality ?n8&~Norwegian) (drink ?d8&~?d7) (cigarette ?c8&~?c7)
-                (pet ?p8&~?p7)(color blue)(location (+ 1 ?l7)|(- ?l7 1)))
-
-   ?f9 <-  (man (nationality ?n9) (drink ?d9&~water) (cigarette Blend)
-                (pet ?p9)(color ?color9)(location ?l9))
-   ?f10 <-  (man (nationality ?n10&~?n9) (drink water) (cigarette ?c10&~Blend)
-                (pet ?p10&~?p9)(color ?color10&~?color9)(location (+ 1 ?l9)|(- ?l9 1)))
-
-
-
-   
-  =>
-  (retract ?f1 ?f2))
+    (retract ?f1 ?f2 ?f3 ?f4 ?f5)
+   (assert (man(nationality ?e5)(cigarette ?e4)(pet ?e2)(color ?e3)(drink ?e1)(location ?num))))
+  
